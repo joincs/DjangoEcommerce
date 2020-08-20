@@ -1,0 +1,65 @@
+{% extends 'theme/base.html' %}{% load static %}{% load crispy_forms_tags %}
+
+{% block jquery %}
+var clientToken = "{{client_token}}";
+
+braintree.setup(clientToken, "dropin", {
+  container: "payment-form"
+});
+{% endblock %}
+
+
+{% block content %}
+    <main>
+        <!--================Checkout Area =================-->
+        <section class="checkout_area">
+          <div class="container">
+            <div class="returning_customer">
+              {% if not user_can_continue %}
+              <div class="row">
+                <div class="col-md-6">
+                  <h4 class="lead">Continue as Guest</h4>
+                  <form action="" method="POST">
+                    {% csrf_token %}
+                    {{form|crispy}}
+                    <button type="submit" class="tp_btn">Continue as Guest</button>
+                  </form>
+                </div>
+                <div class="col-md-6">
+                <h4 class="lead">Continue as Login</h4>
+                <form method="POST">
+                  {% csrf_token %}
+                  {{login_form|crispy}}
+                  <input type="hidden" name="next" value="{{next_url}}">
+                  <button type="submit" class="tp_btn" >Log In</button>
+                </form>
+              </div>
+              {% else %}
+              <p class="lead">Your Order</p>
+              {% include 'orders/order_short.html' with order=order %}
+              <div class="row">
+                <div class="col-sm-12 offset-4" style="margin-top: 10px;">
+                  <a class="tp_btn" href="{% url 'order_address' %}">
+                    Change an Address
+                  </a>
+                </div>
+              </div>
+              <div class="container">
+                <div class="row">
+                  <div class="sm-12">
+                    <form action="{% url 'checkout_final' %}" id="checkout" method="POST">
+                      {% csrf_token %}
+                      <div id="payment-form"></div>
+                      <h5><button type="submit" class="btn btn-success">Complete Order</button></h5>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            </div>
+          </div>
+        </section>
+        <!--================End Checkout Area =================-->
+    </main>
+{% endblock %}

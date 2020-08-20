@@ -1,0 +1,219 @@
+{% extends 'theme/base.html' %}{% load static %}
+
+  {% block jquery %}
+  $(".item-qty").change(function(){
+    var item = $(this).prev("input[type='hidden']").val();
+    var qty = $(this).val()
+    var data = {
+      item: item,
+      qty: qty
+    }
+
+    function showFlashMessage(message) {
+      var template = "{% include 'theme/alert.html' with message='"+ message + "' %}"
+      $("body").append(template);
+      $(".container-alert-flash").fadeIn();
+      setTimeout(function(){
+       $(".container-alert-flash").fadeOut();
+      }, 1800)
+  }
+
+    
+    $.ajax({
+      type: "GET",
+      url: "{% url 'cart' %}",
+      data: data,
+      success: function(data) {
+        $("#jquery-message").text("Added " + data.item_added + " Deleted " + data.deleted)
+        if (data.deleted) {
+          $("#item-"+item).fadeOut();
+          $("#subtotal").text("$" + data.subtotal)
+          $("#taxtotal").text("$" + data.tax_total)
+          $("#carttotal").text("$" + data.cart_total)
+        }
+        else {
+          $("#item-line-total-"+item).text(data.line_total);
+          $("#subtotal").text("$" + data.subtotal)
+          $("#taxtotal").text("$" + data.tax_total)
+          $("#carttotal").text("$" + data.cart_total)
+        }
+
+        if (data.total_items==0) {
+          $(".table").fadeOut();
+        }
+        //if (data.total_items == 0) {
+         // $(".table").fadeOut();
+          //var template = "{% include 'cart/empty_cart.html' %}"
+          //$(".table-responsive").html(template);
+       // } 
+        showFlashMessage(data.flash_message);
+        UpdateCartItemCount(); 
+      }, 
+      error: function(response, error) {
+        $("#add-form").submit()
+      }
+    })
+
+  });
+  
+{% endblock %}
+
+
+
+
+{% block content %}
+<main>
+  <!-- Hero Area Start-->
+  <div class="slider-area ">
+    <div class="single-slider slider-height2 d-flex align-items-center">
+      <div class="container">
+        <div class="row">
+          <div class="col-xl-12">
+            <div class="hero-cap text-center">
+              <h2>Cart List</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!--================Cart Area =================-->
+  <section class="cart_area section_padding">
+    <div class="container">
+      <div class="cart_inner">
+        <div class="table-responsive">
+          {% if object.cartitem_set.count < 1 %}
+            <div class="col-sm-6 offset-3 text-center">
+              <h1>Cart is empty</h1>
+              <a class="btn_1 mt-2" href="{% url 'products:home' %}">Continue Shopping</a>
+            </div>
+          {% else %}
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Price</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Total</th>
+                <th scope="col">Remove</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {% for item in object.cartitem_set.all %}
+              
+                <tr id="item-{{ item.item.id }}">
+                  <td>
+                    <div class="media">
+                      <div class="d-flex">
+                        <img src="{% static 'assets/img/gallery/card1.png' %}" alt="" />
+                      </div>
+                      <div class="media-body">
+                        <p>{{item.item.get_title}}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <h5>${{item.item.getprice}}</h5>
+                  </td>
+                  <td>
+                    <div class="product_count">
+
+                      <form action="." method="GET" >
+                        <input type='hidden' name='item' value='{{ item.item.id }}' />
+                        <input type='number' class='item-qty' name='qty' value='{{ item.quantity }}' />
+                        <input type='submit' class='btn-update btn btn-link' value='Update item' style='display:none;'/>
+                      </form>
+                    </div>
+                  </td>
+                  <td>
+                    <h5 id="item-line-total-{{ item.item.id }}">${{item.line_item_total}}</h5>
+                  </td>
+                  <td>
+                    <a href="{{item.remove}}" style="color:lightcoral;"><span>X</span></a>
+                  </td>
+                </tr>
+                {% endfor %}
+
+                <tr class="bottom_button">
+                  <td></td>
+                  <td></td>
+                  <td>
+                      <div class="cupon_text float-right">
+                        <a class="btn_1" href="#">Close Coupon</a>
+                      </div>
+                    </td>
+                </tr>
+              
+              <tr>
+                <td></td>
+                <td></td>
+                <td>
+                  <h5>Subtotal</h5>
+                  <h5>Tax</h5>
+                  <h5>Total</h5>
+                </td>
+                <td>
+                  <h5><span id="subtotal">${{object.subtotal}}</span></h5>
+                  <h5><span id="taxtotal">${{object.tax_total}}</span></h5>
+                  <h5><span id="carttotal" >${{object.total}}</span></h5>
+                </td>
+              </tr>
+              <!-- <tr class="shipping_area">
+                <td></td>
+                <td></td>
+                <td>
+                  <h5>Shipping</h5>
+                </td>
+                <td>
+                  <div class="shipping_box">
+                    <ul class="list">
+                      <li>
+                        Flat Rate: $5.00
+                        <input type="radio" aria-label="Radio button for following text input">
+                      </li>
+                      <li>
+                        Free Shipping
+                        <input type="radio" aria-label="Radio button for following text input">
+                      </li>
+                      <li>
+                        Flat Rate: $10.00
+                        <input type="radio" aria-label="Radio button for following text input">
+                      </li>
+                      <li class="active">
+                        Local Delivery: $2.00
+                        <input type="radio" aria-label="Radio button for following text input">
+                      </li>
+                    </ul>
+                    <h6>
+                      Calculate Shipping
+                      <i class="fa fa-caret-down" aria-hidden="true"></i>
+                    </h6>
+                    <select class="shipping_select">
+                      <option value="1">Bangladesh</option>
+                      <option value="2">India</option>
+                      <option value="4">Pakistan</option>
+                    </select>
+                    <select class="shipping_select section_bg">
+                      <option value="1">Select a State</option>
+                      <option value="2">Select a State</option>
+                      <option value="4">Select a State</option>
+                    </select>
+                    <input class="post_code" type="text" placeholder="Postcode/Zipcode" />
+                    <a class="btn_1" href="#">Update Details</a>
+                  </div>
+                </td>
+              </tr> -->
+            </tbody>
+          </table>
+          <div class="checkout_btn_inner float-right">
+            <a class="btn_1" href="{% url 'products:home' %}">Continue Shopping</a>
+            <a class="btn_1 checkout_btn_1" href="{% url 'checkout' %}">Proceed to checkout</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+  </section>
+  <!--================End Cart Area =================-->
+</main>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% load static %}
+<div class="single-popular-items mb-50 text-center">
+    <div class="popular-img">
+        {% if product.get_image_url %}
+        <img src="{{product.get_image_url}}" alt="" width="361px" height="380px">
+        {% else %}
+        <img src="{% static 'assets/img/gallery/popular2.png' %}" alt="">
+        {% endif %}
+        <div class="img-cap">
+            <span>Add to cart</span>
+        </div>
+        <div class="favorit-items">
+            <span class="flaticon-heart"></span>
+        </div>
+    </div>
+    <div class="popular-caption">
+        <h3><a href="{{product.get_absolute_url}}" style="color: black;">{{product.title}}</a></h3>
+        {{product.product_variation.first.get_html_price|safe}}
+    </div>
+</div>

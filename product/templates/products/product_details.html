@@ -1,0 +1,170 @@
+{% extends 'theme/base.html' %}{% load static %}
+{% block jquery %}
+function setPrice(){
+	var price = $(".variation_select option:selected").attr("data-price")
+
+	var sale_price = $(".variation_select option:selected").attr("data-sale-price")
+	if (sale_price != "" && sale_price != "None" && sale_price != null ) {
+	$("#price").html("<h4 style='margin-top:11px; margin-right:26px;'>" + "$" + sale_price + " <small style='color:red;text-decoration:line-through;'>" + "$" +  price  + "</small></h4>");
+	} else {
+	$("#price").html(price);
+	}
+}
+setPrice()
+
+$(".variation_select").change(function(){
+	setPrice()
+	// var img = $(".variation_select option:selected").attr("data-img")
+	// $("img").attr("src", img);
+
+})
+
+function showFlashMessage(message) {
+    var template = "{% include 'theme/alert.html' with message='"+ message + "' %}"
+    $("body").append(template);
+    $(".container-alert-flash").fadeIn();
+    setTimeout(function(){
+     $(".container-alert-flash").fadeOut();
+    }, 1800)
+}
+
+$("#submit-btn").click(function(event){
+    event.preventDefault()
+    var formData = $("#add-form").serialize();
+    console.log(formData);
+    $.ajax({
+        type:"GET",
+        url :"{% url 'cart' %}",
+        data:formData,
+        success:function(data){
+            showFlashMessage(data.flash_message);
+            UpdateCartItemCount(); 
+        },
+        error:function(response,error){
+            ("#add-form").submit()
+        }
+    })
+    
+})
+{% endblock %}
+
+{% block content %}
+<main>
+    <!-- Hero Area Start-->
+    <div class="slider-area ">
+        <div class="single-slider slider-height2 d-flex align-items-center">
+            <div class="container">
+                <div class="row">
+                    <div class="col-xl-12">
+                        <div class="hero-cap text-center">
+                            <h2>Watch Shop</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Hero Area End-->
+    <!--================Single Product Area =================-->
+    <div class="product_image_area">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-12">
+                    <div class="product_img_slide owl-carousel">
+                        {% if object.get_image_url %}
+                        <div class="single_product_img">
+                            <img src="{{object.get_image_url}}" height="50%" alt="#">
+                        </div>
+                        {% endif %}
+                        <!-- <div class="single_product_img">
+                            <img src="{% static 'assets/img/gallery/gallery01.png' %}" alt="#" class="img-fluid">
+                        </div>
+                        <div class="single_product_img">
+                            <img src="{% static 'assets/img/gallery/gallery1.png' %}" alt="#" class="img-fluid">
+                        </div> -->
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="single_product_text text-center">
+                        <h3>{{object.title}}</h3>
+                        <p>
+                            {{object.description|linebreaks}}
+                        </p>
+                        <form id='add-form' action="{% url 'cart' %}" method="GET">
+                            <p id="jquery-message" class="lead">
+
+                            </p>
+                        <div class="card_area">
+                            <div class="product_count_area">
+                                {% if object.product_variation.count > 1 %}
+                                <h3 id='price' style="margin:2px;">${{ object.product_variation.first.price }}</h3>
+                                <select name="item" class='variation_select' style="margin-top: -3px;">
+                                    {% for vari_obj in object.product_variation.all %}
+                                    <option data-sale-price="{{ vari_obj.sale_price }}" data-price="{{ vari_obj.price }}" value="{{ vari_obj.id }}">{{ vari_obj }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% else %}
+                                <h3 id='price' style="margin:2px;">$
+                                    {% if object.product_variation.first.sale_price  %}
+                                        {{ object.product_variation.first.sale_price }}
+                                        <small style='color:red;text-decoration:line-through;'>{{ object.product_variation.first.price }}</small>
+                                    {% else %}
+                                    <input type="hidden" name='item' value='{{ object.variation_set.first.id }}'/>
+                                        {{ object.product_variation.first.price }}</h3>
+                                    {% endif %}
+                                {% endif %}
+                                <br />
+                            </div>
+                            
+                        </div> 
+                        <div class="card_area">
+                            <div class="product_count_area">
+                                <p>Quantity</p>
+                                <div class="product_count d-inline-block">
+                                    <span class="product_count_item inumber-decrement"> <i class="ti-minus"></i></span>
+                                    <input name="qty" class="product_count_item input-number" type="text" value="1" min="0">
+                                    <span class="product_count_item number-increment"> <i class="ti-plus"></i></span>
+                                </div>
+                            </div>
+                            <div class="add_to_cart">
+                                <input id="submit-btn" type="submit" class="btn_3" value="Add To Cart"/>
+                            </div>
+                        </div> 
+                    </form>
+                    </div>
+                </div>
+                <div class="container">
+                    <h3 align="center" style="margin-top:100px;">Related Products</h3>
+                    <div class="row">
+                        {% for product in related %}
+                        <div class="col-xl-4 col-lg-4 col-md-6 col-sm-6">
+                            {% include 'products/product_thumbnail.html' with product=product %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--================End Single Product Area =================-->
+    <!-- subscribe part here -->
+    <section class="subscribe_part section_padding">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="subscribe_part_content">
+                        <h2>Get promotions & updates!</h2>
+                        <p>Seamlessly empower fully researched growth strategies and interoperable internal or “organic”
+                            sources credibly innovate granular internal .</p>
+                        <div class="subscribe_form">
+                            <input type="email" placeholder="Enter your mail">
+                            <a href="#" class="btn_1">Subscribe</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- subscribe part end -->
+</main>
+{% endblock %}

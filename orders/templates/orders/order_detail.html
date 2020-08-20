@@ -1,0 +1,12 @@
+{% extends 'theme/base.html' %}{% load static %}
+{% block content %}
+
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">{% include 'orders/order_short.html' with order=order %}</div>
+    </div>
+
+</div>
+
+{% endblock %}
