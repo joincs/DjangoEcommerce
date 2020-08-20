@@ -144,9 +144,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR,'media')
 
 
 # BrainTree payments Details
-BRAINTREE_PUBLIC = "zgp84vkr5fd3ccjc"
-BRAINTREE_PRIVATE = "9fa21849e4bb0243fdf1561c6c3a7a74"
-BRAINTREE_MERCHANT_ID = "nksd349m7574tnb7"
+BRAINTREE_PUBLIC = "your_braintree_public_key"
+BRAINTREE_PRIVATE = "your_braintree_private_key"
+BRAINTREE_MERCHANT_ID = "your_braintree_merchant_id"
 BRAINTREE_ENVIRONMENT = "Sandbox"
 
 
